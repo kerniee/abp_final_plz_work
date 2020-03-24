@@ -6,4 +6,16 @@
 
 {% block body %}
     <h1>Hello!</h1>
+    <h3>Register user</h3>
+    <form action="/add_user" method="post">
+       <p><input type="text" name="username"></p>
+       <p><button type="reset">Очистить форму</button>
+       <button type="submit">Отправить форму</button></p>
+    </form>
+    <ul>
+    <h3>Users:</h3>
+    {% for user in users %}
+        <li><a>{{ user.username }}</a></li>
+    {% endfor %}
+    </ul>
 {% endblock %}
