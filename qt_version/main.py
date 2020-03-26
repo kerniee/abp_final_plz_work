@@ -115,7 +115,7 @@ class AddPartWindow(QMainWindow):
         #запись в базу данных
         #for i in parts_lst:
             #self.addParts(i[0], i[1], i[2])
-        
+
         with open('log.txt', 'a+') as log:
             n = self.spinBox.value()
             date = self.dateEdit.date().toString()
@@ -126,8 +126,8 @@ class AddPartWindow(QMainWindow):
             lines = []
             for line in lines:
                 log.write(line + '\n')
-         if self.sender() == self.ok:
-             self.close()
+        if self.sender() == self.ok:
+            self.close()
          
     def getData(self):
         rows = self.tableWidget.rowCount()
