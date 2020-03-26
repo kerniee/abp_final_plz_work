@@ -104,11 +104,22 @@ class AddPartWindow(QMainWindow):
         super().__init__()
         uic.loadUi('ui/add_parts_form.ui', self)
         self.ok.clicked.connect(self.loadToDB)
+        self.ok.clicked.connect(self.close)
         self.b_load.clicked.connect(self.loadToDB)
         self.b_close.clicked.connect(self.close)
 
     def loadToDB(self):
-        pass
+        # TODO: запись в реальную базу данных
+        with open('log.txt', 'a+') as log:
+            n = self.spinBox.value()
+            date = self.dateEdit.date().toString()
+            name = self.lineEdit.text()
+            log.write('-----------\n')
+            log.write(f'Номер: {n}     Дата: {date}\n')
+            log.write(f'Ответственный: {name}\n')
+            lines = []
+            for line in lines:
+                log.write(line + '\n')
 
     def addParts(self, name, type_):
         # создание элемента нужного класса
