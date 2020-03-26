@@ -124,9 +124,9 @@ class AddPartWindow(QMainWindow):
             log.write('-----------\n')
             log.write(f'Номер: {n}     Дата: {date}\n')
             log.write(f'Ответственный: {name}\n')
-            lines = []
-            for line in lines:
-                log.write(line + '\n')
+            for line in parts_lst:
+                s = f'Комплектующие: {line[0]} Серийный номер: {line[1]} Количество: {line[2]}'
+                log.write(s + '\n')
         if self.sender() == self.ok:
             self.close()
          
