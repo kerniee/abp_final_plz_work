@@ -104,12 +104,18 @@ class AddPartWindow(QMainWindow):
         super().__init__()
         uic.loadUi('ui/add_parts_form.ui', self)
         self.ok.clicked.connect(self.loadToDB)
-        self.ok.clicked.connect(self.close)
         self.b_load.clicked.connect(self.loadToDB)
         self.b_close.clicked.connect(self.close)
 
     def loadToDB(self):
         # TODO: запись в реальную базу данных
+        #получение данных из таблицы
+        parts_lst = self.getData()
+
+        #запись в базу данных
+        #for i in parts_lst:
+            #self.addParts(i[0], i[1], i[2])
+        
         with open('log.txt', 'a+') as log:
             n = self.spinBox.value()
             date = self.dateEdit.date().toString()
@@ -120,6 +126,23 @@ class AddPartWindow(QMainWindow):
             lines = []
             for line in lines:
                 log.write(line + '\n')
+         if self.sender() == self.ok:
+             self.close()
+         
+    def getData(self):
+        rows = self.tableWidget.rowCount()
+        cols = self.tableWidget.columnCount()
+        data = []
+        for row in range(rows):
+            tmp = []
+            for col in range(cols):
+                tmp.append(self.tableWidget.item(row, col).text())
+            data.append(tmp)
+        return data
+
+    def addRow(self):
+        rows = self.tableWidget.rowCount()
+        self.tableWidget.setRowCount(rows + 1)
 
     def addParts(self, name, type_):
         # создание элемента нужного класса
@@ -129,7 +152,7 @@ class AddPartWindow(QMainWindow):
 
         # создание сессии к базе данных
         session = db_session.create_session()
-        part.type = session.query(Types).filter(Types.name.like("%" + type_ + "%")).first().id
+        part.type = session.query(Types).filter(Types.name.like("%" + '' + "%")).first().id
 
         # запись элемента в базу
         session.add(part)
