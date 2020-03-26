@@ -44,7 +44,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Загрузить</string>
+        <string>Записать</string>
        </property>
       </widget>
      </item>
