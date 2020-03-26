@@ -19,7 +19,7 @@ class LoadToDataBaseWindow(QMainWindow):
     def __init__(self):
         db_session.global_init("db/Ttracking_drones.sqlite")
         super().__init__()
-        uic.loadUi('load_form.ui', self)
+        uic.loadUi('ui/load_form.ui', self)
         self.pushButton.clicked.connect(self.viewFile)
         self.pushButton1.clicked.connect(self.viewFile)
         self.pushButton2.clicked.connect(self.viewFile)
