@@ -10,6 +10,11 @@
     <height>505</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>16</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Загрузка данных</string>
   </property>
@@ -85,14 +90,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_5">
-       <property name="font">
-        <font>
-         <pointsize>16</pointsize>
-        </font>
+      <widget class="QSpinBox" name="spinBox">
+       <property name="minimum">
+        <number>1</number>
        </property>
-       <property name="text">
-        <string>НОМЕР</string>
+       <property name="maximum">
+        <number>60000</number>
        </property>
       </widget>
      </item>
@@ -109,14 +112,18 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_7">
+      <widget class="QDateEdit" name="dateEdit">
        <property name="font">
         <font>
          <pointsize>16</pointsize>
         </font>
        </property>
-       <property name="text">
-        <string>ДАТА</string>
+       <property name="date">
+        <date>
+         <year>2020</year>
+         <month>3</month>
+         <day>26</day>
+        </date>
        </property>
       </widget>
      </item>
@@ -202,7 +209,7 @@
      <x>0</x>
      <y>0</y>
      <width>696</width>
-     <height>22</height>
+     <height>36</height>
     </rect>
    </property>
   </widget>
