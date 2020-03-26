@@ -2,12 +2,16 @@
 
 import os
 import sys
+import time
+import datetime
 
 import xlrd
 
+import pyqtgraph as pg
+
 if hasattr(sys, 'frosen'):
     os.environ['PATH'] = sys._MEIPASS + ';' + os.environ['PATH']
-from PyQt5 import uic
+from PyQt5 import uic, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PyQt5 import QtWidgets
 from data import db_session
@@ -26,7 +30,7 @@ class MainMenu(QMainWindow):
         self.b_viewAll.clicked.connect(self.createWindow('ViewAllWindow'))
         # self.b_createRequest.clicked.connect(self.createWindow('...'))
         # self.b_viewRequests.clicked.connect(self.createWindow('...'))
-        # self.b_viewAKB.clicked.connect(self.createWindow('...'))
+        self.b_viewAKB.clicked.connect(self.createWindow('ViewAKBWindow'))
 
     def createWindow(self, name):
         def _createWindow():
@@ -198,6 +202,44 @@ class ViewAllWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('ui/remainings.ui', self)
+
+
+class ViewAKBWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('ui/spare_parts_remaining_form.ui', self)
+
+        self.dateEdit.dateChanged.connect(self.generate_plot)
+        self.dateEdit_2.dateChanged.connect(self.generate_plot)
+
+        self.view = view = pg.PlotWidget()
+        self.curve = view.plot(name="Line")
+        self.generate_plot()
+
+    def generate_dates(self):
+        start_date = self.dateEdit.date().toPyDate()
+        l = []
+        for i in range(self.NUM_OF_DATES):
+            l.append(str(start_date + datetime.timedelta(days=i)))
+        return l
+
+    def generate_plot(self):
+        # random_array = np.random.random_sample(20)
+        self.gridLayout.removeWidget(self.view)
+        self.NUM_OF_DATES = (self.dateEdit_2.date().toPyDate() -
+                             self.dateEdit.date().toPyDate()).days
+
+        self.view = view = pg.PlotWidget()
+        self.curve = view.plot(name="Line")
+
+        # TODO: load info from db
+        array = [1, 10, 6, 12]
+
+        dates = [list(zip(range(self.NUM_OF_DATES), self.generate_dates()))]
+        xax = self.view.getAxis('bottom')
+        xax.setTicks(dates)
+        self.curve.setData(array)
+        self.gridLayout.addWidget(self.view)
 
 
 class Error(QtWidgets.QDialog):
