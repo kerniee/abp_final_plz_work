@@ -106,6 +106,7 @@ class AddPartWindow(QMainWindow):
         self.ok.clicked.connect(self.loadToDB)
         self.b_load.clicked.connect(self.loadToDB)
         self.b_close.clicked.connect(self.close)
+        self.b_addRow.clicked.connect(self.addRow)
 
     def loadToDB(self):
         # TODO: запись в реальную базу данных
