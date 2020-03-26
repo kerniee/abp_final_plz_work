@@ -4,6 +4,7 @@ import os
 import sys
 
 import xlrd
+
 if hasattr(sys, 'frosen'):
     os.environ['PATH'] = sys._MEIPASS + ';' + os.environ['PATH']
 from PyQt5 import uic
@@ -97,8 +98,35 @@ class LoadToDataBaseWindow(QMainWindow):
         session.commit()
 
 
+class AddPartWindow(QMainWindow):
+    def __init__(self):
+        db_session.global_init("db/Ttracking_drones.sqlite")
+        super().__init__()
+        uic.loadUi('ui/add_parts_form.ui', self)
+        self.ok.clicked.connect(self.loadToDB)
+        self.b_load.clicked.connect(self.loadToDB)
+        self.b_close.clicked.connect(self.close)
+
+    def loadToDB(self):
+        pass
+
+    def addParts(self, name, type_):
+        # создание элемента нужного класса
+        part = Parts()
+        # установка параметров элемента
+        part.name = name
+
+        # создание сессии к базе данных
+        session = db_session.create_session()
+        part.type = session.query(Types).filter(Types.name.like("%" + type_ + "%")).first().id
+
+        # запись элемента в базу
+        session.add(part)
+        session.commit()
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = LoadToDataBaseWindow()
+    ex = AddPartWindow()
     ex.show()
     sys.exit(app.exec_())
