@@ -171,6 +171,9 @@
       <pointsize>12</pointsize>
      </font>
     </property>
+    <property name="rowCount">
+     <number>0</number>
+    </property>
     <property name="columnCount">
      <number>3</number>
     </property>
@@ -201,6 +204,19 @@
       <string>Количество</string>
      </property>
     </column>
+   </widget>
+   <widget class="QPushButton" name="b_addRow">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>369</y>
+      <width>301</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Добавить комплектующее</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
