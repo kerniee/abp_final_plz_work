@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>696</width>
+    <width>700</width>
     <height>527</height>
    </rect>
   </property>
@@ -16,15 +16,15 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Загрузка данных</string>
+   <string>Поступление комплектующих</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>20</x>
       <y>370</y>
-      <width>281</width>
+      <width>341</width>
       <height>81</height>
      </rect>
     </property>
@@ -72,7 +72,7 @@
      <rect>
       <x>20</x>
       <y>20</y>
-      <width>581</width>
+      <width>651</width>
       <height>41</height>
      </rect>
     </property>
@@ -106,8 +106,14 @@
          <pointsize>12</pointsize>
         </font>
        </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
        <property name="text">
         <string>от</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -181,7 +187,7 @@
      <number>60</number>
     </attribute>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>150</number>
+     <number>211</number>
     </attribute>
     <attribute name="verticalHeaderMinimumSectionSize">
      <number>60</number>
@@ -224,8 +230,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>696</width>
-     <height>36</height>
+     <width>700</width>
+     <height>29</height>
     </rect>
    </property>
   </widget>

@@ -9,6 +9,7 @@ if hasattr(sys, 'frosen'):
     os.environ['PATH'] = sys._MEIPASS + ';' + os.environ['PATH']
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt5 import QtWidgets
 from data import db_session
 from data.Parts import Parts
 from data.Types import Types
@@ -16,9 +17,28 @@ from data.drons import Drons
 from data.tech_maps import TechMaps
 
 
+class MainMenu(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('ui/menu.ui', self)
+        self.b_loadData.clicked.connect(self.createWindow('LoadToDataBaseWindow'))
+        self.b_addPart.clicked.connect(self.createWindow('AddPartWindow'))
+        self.b_viewAll.clicked.connect(self.createWindow('ViewAllWindow'))
+        # self.b_createRequest.clicked.connect(self.createWindow('...'))
+        # self.b_viewRequests.clicked.connect(self.createWindow('...'))
+        # self.b_viewAKB.clicked.connect(self.createWindow('...'))
+
+    def createWindow(self, name):
+        def _createWindow():
+            window = globals()[name]()
+            setattr(self, name, window)
+            getattr(self, name, window).show()
+        return _createWindow
+
+
 class LoadToDataBaseWindow(QMainWindow):
     def __init__(self):
-        db_session.global_init("db/Ttracking_drones.sqlite")
+        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         uic.loadUi('ui/load_form.ui', self)
         self.pushButton.clicked.connect(self.viewFile)
@@ -100,13 +120,24 @@ class LoadToDataBaseWindow(QMainWindow):
 
 class AddPartWindow(QMainWindow):
     def __init__(self):
-        db_session.global_init("db/Ttracking_drones.sqlite")
+        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         uic.loadUi('ui/add_parts_form.ui', self)
         self.ok.clicked.connect(self.loadToDB)
         self.b_load.clicked.connect(self.loadToDB)
-        self.b_close.clicked.connect(self.close)
+        self.b_close.clicked.connect(self.cclose)
         self.b_addRow.clicked.connect(self.addRow)
+
+    def cclose(self):
+        parts_lst = self.getData()
+        flag = False
+        for line in parts_lst:
+            if any([l == '' for l in line]):
+                flag = True
+                self.error_window = Error()
+                self.error_window.show()
+        if not flag:
+            self.close()
 
     def loadToDB(self):
         # TODO: запись в реальную базу данных
@@ -137,7 +168,10 @@ class AddPartWindow(QMainWindow):
         for row in range(rows):
             tmp = []
             for col in range(cols):
-                tmp.append(self.tableWidget.item(row, col).text())
+                try:
+                    tmp.append(self.tableWidget.item(row, col).text())
+                except AttributeError:
+                    tmp.append('')
             data.append(tmp)
         return data
 
@@ -160,8 +194,21 @@ class AddPartWindow(QMainWindow):
         session.commit()
 
 
+class ViewAllWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('ui/remainings.ui', self)
+
+
+class Error(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('ui/error.ui', self)
+        self.label.setText('Не все поля заполнены')
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = AddPartWindow()
+    ex = MainMenu()
     ex.show()
     sys.exit(app.exec_())
