@@ -220,7 +220,7 @@ class ViewAKBWindow(QMainWindow):
         start_date = self.dateEdit.date().toPyDate()
         l = []
         for i in range(self.NUM_OF_DATES):
-            l.append(str(start_date + datetime.timedelta(days=i)))
+            l.append(str(start_date + datetime.timedelta(days=i))[5:])
         return l
 
     def generate_plot(self):
@@ -233,7 +233,8 @@ class ViewAKBWindow(QMainWindow):
         self.curve = view.plot(name="Line")
 
         # TODO: load info from db
-        array = [1, 10, 6, 12]
+        import random
+        array = [random.randint(1, 100) for x in range(self.NUM_OF_DATES)]
 
         dates = [list(zip(range(self.NUM_OF_DATES), self.generate_dates()))]
         xax = self.view.getAxis('bottom')
