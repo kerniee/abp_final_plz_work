@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>696</width>
-    <height>505</height>
+    <height>527</height>
    </rect>
   </property>
   <property name="font">
@@ -30,7 +30,7 @@
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="ok">
        <property name="font">
         <font>
          <pointsize>12</pointsize>
