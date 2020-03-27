@@ -6,21 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>928</width>
-    <height>620</height>
+    <width>925</width>
+    <height>575</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Просмотр всех заявок</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>931</width>
-      <height>571</height>
+      <x>10</x>
+      <y>10</y>
+      <width>901</width>
+      <height>461</height>
      </rect>
     </property>
     <property name="font">
@@ -44,7 +44,7 @@
      <number>60</number>
     </attribute>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>180</number>
+     <number>210</number>
     </attribute>
     <attribute name="verticalHeaderMinimumSectionSize">
      <number>60</number>
@@ -78,14 +78,35 @@
      </property>
     </column>
    </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>311</x>
+      <y>483</y>
+      <width>261</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>изменить состояние заявки</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>928</width>
-     <height>22</height>
+     <width>925</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>
