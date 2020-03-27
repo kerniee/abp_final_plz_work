@@ -6,19 +6,21 @@ import time
 import datetime
 
 import xlrd
+import xlwt
 
 import pyqtgraph as pg
 
 if hasattr(sys, 'frosen'):
     os.environ['PATH'] = sys._MEIPASS + ';' + os.environ['PATH']
 from PyQt5 import uic, Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5 import QtWidgets
 from data import db_session
 from data.Parts import Parts
 from data.Types import Types
 from data.drons import Drons
 from data.tech_maps import TechMaps
+from data.storage import Storage
 
 
 class MainMenu(QMainWindow):
@@ -37,6 +39,7 @@ class MainMenu(QMainWindow):
             window = globals()[name]()
             setattr(self, name, window)
             getattr(self, name, window).show()
+
         return _createWindow
 
 
@@ -144,13 +147,13 @@ class AddPartWindow(QMainWindow):
             self.close()
 
     def loadToDB(self):
-        # TODO: запись в реальную базу данных
-        #получение данных из таблицы
+        # получение данных из таблицы
         parts_lst = self.getData()
 
-        #запись в базу данных
-        #for i in parts_lst:
-            #self.addParts(i[0], i[1], i[2])
+        # запись в базу данных
+        for i in parts_lst:
+            print(i)
+            self.addPost(i[0], i[1], i[2])
 
         with open('log.txt', 'a+') as log:
             n = self.spinBox.value()
@@ -164,7 +167,7 @@ class AddPartWindow(QMainWindow):
                 log.write(s + '\n')
         if self.sender() == self.ok:
             self.close()
-         
+
     def getData(self):
         rows = self.tableWidget.rowCount()
         cols = self.tableWidget.columnCount()
@@ -183,25 +186,141 @@ class AddPartWindow(QMainWindow):
         rows = self.tableWidget.rowCount()
         self.tableWidget.setRowCount(rows + 1)
 
-    def addParts(self, name, type_):
-        # создание элемента нужного класса
-        part = Parts()
-        # установка параметров элемента
-        part.name = name
-
-        # создание сессии к базе данных
+    def addPost(self, name, ser_num, qual):
+        post = Storage()
         session = db_session.create_session()
-        part.type = session.query(Types).filter(Types.name.like("%" + '' + "%")).first().id
-
-        # запись элемента в базу
-        session.add(part)
+        post.id_parts = session.query(Parts).filter(Parts.name.like("%" + name + "%")).first().id
+        try:
+            post.serial_number = int(ser_num)
+        except TypeError:
+            print('некоторые параметры не записаны')
+        try:
+            post.quantity = int(qual)
+        except TypeError:
+            print('некоторые параметры не записаны')
+        session.add(post)
         session.commit()
 
 
 class ViewAllWindow(QMainWindow):
     def __init__(self):
+        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         uic.loadUi('ui/remainings.ui', self)
+        self.b_load.clicked.connect(self.takeNote)
+        self.b_print.clicked.connect(self.createXLSX)
+        self.b_close.clicked.connect(self.close)
+        self.editDateTime()
+
+    def editDateTime(self):
+        today = datetime.datetime.now().date()
+        self.dateEdit.setMaximumDate(today)
+
+    def loadDataToTable(self, data):
+        self.tableWidget.setRowCount(len(data))
+        for i, elem in enumerate(data):
+            for j, val in enumerate(elem):
+                self.tableWidget.setItem(i, j, QTableWidgetItem(str(val)))
+        self.tableWidget.resizeColumnsToContents()
+
+    def takeNote(self):
+        day = self.dateEdit.date().toPyDate()
+        now_day = datetime.datetime.now().date()
+        #Если дата в будущем вызываем ошибку
+        if day > now_day:
+            warn = Error(self, 'На указаную дату не может быть отчёта')
+            warn.show()
+        #если дата назначено сегодня - вызываем информацию напрямую из базы
+        elif day == now_day:
+            self.takeDataFromBase()
+        else:
+            # проверка есть ли отчёт на это число
+            dates_where_we_have_otchet = open('отчёты/otchet_lod.txt', 'r')
+            temp = dates_where_we_have_otchet.read().split('\n')
+
+            #если есть берём этот отч1т и выводим в таблицу
+            if str(day) in temp:
+                filename = 'отчёты/Остаток_на_' + str(day) + '.xls'
+                self.takeDataFromFile(filename)
+            else:
+                temp.append(str(day))
+                dates = []
+                for i in temp:
+                    dates.append(datetime.date(int(i.split('-')[0]), int(i.split('-')[1]), int(i.split('-')[2])))
+                dates = sorted(dates)
+                #иначе берёмсамое близкое число, предшествующее данному и показываем отчёт за него
+                indx = dates.index(day) - 1
+                filename = 'отчёты/Остаток_на_' + str(dates[indx])  + '.xls'
+                #Если этот индекс валидный - значит есть отчёт, который предшествует данно дате - выводим его
+                if 0 <= indx:
+                    self.takeDataFromFile(filename)
+                else:
+                    # Иначе предупреждаем об ошибке
+                    warn = Error(self, 'На указаную дату нет отчёта. На предшествующие даты также нет отчётов.')
+                    warn.show()
+
+    def takeDataFromFile(self, filename):
+        wb2 = xlrd.open_workbook(filename)
+        sh2 = wb2.sheet_by_index(0)
+        data = []
+        for row_number in range(1, sh2.nrows):
+            temp = sh2.row_values(row_number)
+            data.append(temp)
+        self.loadDataToTable(data)
+
+    def takeDataFromBase(self):
+        session = db_session.create_session()
+        data = [[i.id, i.part.name, i.quantity] for i in session.query(Storage).all()]
+        self.loadDataToTable(data)
+
+    def getDataFromTable(self):
+        rows = self.tableWidget.rowCount()
+        cols = self.tableWidget.columnCount()
+        data = []
+        for row in range(rows):
+            tmp = []
+            for col in range(cols):
+                try:
+                    tmp.append(self.tableWidget.item(row, col).text())
+                except AttributeError:
+                    tmp.append('')
+            data.append(tmp)
+        return data
+
+    def createXLSX(self):
+        files = os.listdir('отчёты')
+        filename = 'Остаток_на_' + str(self.dateEdit.date().toPyDate()) + '.xls'
+        if filename not in files:
+            file = open('отчёты/' + filename, 'w')
+            file.close()
+
+            file = open('отчёты/otchet_lod.txt', 'r')
+            dates = []
+            for i in (file.read() + '\n' + str(self.dateEdit.date().toPyDate())).split('\n'):
+                dates.append(datetime.date(int(i.split('-')[0]), int(i.split('-')[1]), int(i.split('-')[2])))
+            dates = '\n'.join(list(map(str, sorted(dates))))
+            file.close()
+
+            file = open('отчёты/otchet_lod.txt', 'w')
+            file.write(dates)
+            file.close()
+
+        book = xlwt.Workbook(encoding="utf-8")
+        sheet1 = book.add_sheet("Python Sheet 1")
+        sheet1.write(0, 0, '№')
+        sheet1.write(0, 1, 'Комплектующее')
+        sheet1.write(0, 2, 'Остаток')
+
+        datas = self.getDataFromTable()
+
+        for row, data in enumerate(datas, start=1):
+            for col, field in enumerate(data):
+                sheet1.write(row, col, field)
+
+        book.save('отчёты/' + filename)
+        win = Error(self, 'Отчёт от остатке успешно подготовлен. Вы можете найти его по пути:\n' + os.path.abspath('отчёты/' + filename))
+        win.setWindowTitle('Успешно подготовлен xls')
+        win.show()
 
 
 class ViewAKBWindow(QMainWindow):
@@ -244,10 +363,10 @@ class ViewAKBWindow(QMainWindow):
 
 
 class Error(QtWidgets.QDialog):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, main=None, text='Не все поля заполнены'):
+        super().__init__(main)
         uic.loadUi('ui/error.ui', self)
-        self.label.setText('Не все поля заполнены')
+        self.label.setText(text)
 
 
 if __name__ == '__main__':
