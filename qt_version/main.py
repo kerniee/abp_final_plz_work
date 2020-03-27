@@ -311,7 +311,7 @@ class ViewAllWindow(QMainWindow):
 
             # если есть берём этот отч1т и выводим в таблицу
             if str(day) in temp:
-                filename = 'отчёты/Остаток_на_' + str(day) + '.xlsч'
+                filename = 'отчёты/Остаток_на_' + str(day) + '.xls'
                 self.takeDataFromFile(filename)
             else:
                 temp.append(str(day))
