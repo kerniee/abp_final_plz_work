@@ -15,6 +15,7 @@ import pyqtgraph as pg
 
 
 from PyQt5 import uic, Qt
+
 if hasattr(sys, 'frosen'):
     os.environ['PATH'] = sys._MEIPASS + ';' + os.environ['PATH']
 from PyQt5 import uic
@@ -24,9 +25,10 @@ from data import db_session
 from data.Parts import Parts
 from data.Types import Types
 from data.drons import Drons
-from data.Orders import Orders
 from data.tech_maps import TechMaps
 from data.storage import Storage
+from data.Orders import Orders
+
 
 def load_types():
     session = db_session.create_session()
@@ -43,7 +45,7 @@ class MainMenu(QMainWindow):
         self.b_loadData.clicked.connect(self.createWindow('LoadToDataBaseWindow'))
         self.b_addPart.clicked.connect(self.createWindow('AddPartWindow'))
         self.b_viewAll.clicked.connect(self.createWindow('ViewAllWindow'))
-        # self.b_createRequest.clicked.connect(self.createWindow('...'))
+        self.b_createRequest.clicked.connect(self.createWindow('CreateOrder'))
         self.b_viewRequests.clicked.connect(self.createWindow('ViewRequestsWindow'))
         self.b_viewAKB.clicked.connect(self.createWindow('ViewAKBWindow'))
 
@@ -139,6 +141,102 @@ class LoadToDataBaseWindow(QMainWindow):
         session.commit()
 
 
+class CreateOrder(QMainWindow):
+    def __init__(self):
+        db_session.global_init("db/Tracking_drones.sqlite")
+        super().__init__()
+        load_types()
+        uic.loadUi('ui/dron_order_form.ui', self)
+        self.slt_of_drons = []
+        self.pushButton.clicked.connect(self.takeOrder)
+        self.pushButton_2.clicked.connect(self.close)
+        self.b_addDron.clicked.connect(self.addDronToOrder)
+
+    def loadDataToTable(self, data):
+        self.tableWidget.setRowCount(len(data))
+        for i, elem in enumerate(data):
+            for j, val in enumerate(elem):
+                self.tableWidget.setItem(i, j, QTableWidgetItem(str(val)))
+        self.tableWidget.resizeColumnsToContents()
+
+    def takeOrder(self):
+        order = Orders()
+
+        dron_lst = self.getData()
+        dron_lst = '\n'.join(list(map(lambda u: ':'.join(u), dron_lst)))
+        if dron_lst == '':
+            win = Error(self, 'Нет указаных дронов')
+            win.show()
+            return
+        order.dron_lst = dron_lst
+        order.createDate = str(self.dateEdit.date().toPyDate())
+        order.closeDate = str(self.dateEdit.date().toPyDate())
+        order.costumer = self.costumer.text()
+        order.state = 'Запрошено разрешение у ФСБ'
+
+        session = db_session.create_session()
+        temp = session.query(Orders).filter(Orders.costumer.like(order.costumer)).all()
+        if temp is not None:
+            test_fbi = [i.state for i in temp]
+            if 'Идет сборка' in test_fbi or 'Готова к отгрузке' in test_fbi or 'Отгружена' in test_fbi:
+                order.state = 'Идет сборка'
+
+        session.add(order)
+        session.commit()
+        session.close()
+
+        win = Error(self, 'Заявка успешно создана в базе')
+        win.setWindowTitle('Успешно')
+        win.show()
+        self.close()
+
+    def addDronToOrder(self):
+        win = AdderDronToOrder(self)
+        win.show()
+
+    def getData(self):
+        rows = self.tableWidget.rowCount()
+        cols = self.tableWidget.columnCount()
+        data = []
+        for row in range(rows):
+            tmp = []
+            for col in range(cols):
+                try:
+                    tmp.append(self.tableWidget.item(row, col).text())
+                except AttributeError:
+                    tmp.append('')
+            data.append(tmp)
+        return data
+
+
+class AdderDronToOrder(QMainWindow):
+    def __init__(self, main=None):
+        super().__init__(main)
+        uic.loadUi('ui/add_dron_to_order.ui', self)
+        self.addDronsToComboBox()
+        self.main = main
+        self.pushButton.clicked.connect(self.buttons)
+
+    def addDronsToComboBox(self):
+        session = db_session.create_session()
+        for i in session.query(Drons).all():
+            try:
+                self.dron_type.addItem(i.name)
+            except AttributeError:
+                print('ошибка аттрибуции')
+
+    def buttons(self):
+        numbers = self.spinBox.value()
+        name = self.dron_type.currentText()
+        if name == 'Дрон не выбран':
+            win = Error(self, 'Дрон не выбран')
+            win.show()
+            return
+        self.main.slt_of_drons.append([name, numbers])
+        self.main.loadDataToTable(self.main.slt_of_drons)
+        self.close()
+
+
 class AddPartWindow(QMainWindow):
     def __init__(self):
         db_session.global_init("db/Tracking_drones.sqlite")
@@ -167,7 +265,7 @@ class AddPartWindow(QMainWindow):
         parts_lst = self.getData()
 
         # запись в базу данных
-        
+
         for i in parts_lst:
             print(i)
             res = self.addPost(i[0], i[1], i[2])
@@ -356,7 +454,6 @@ class ViewAllWindow(QMainWindow):
 
     def chooseSaveOrPrint(self):
         win = Chooser(self)
-        print(1)
         win.show()
 
     def createXLSX(self):
