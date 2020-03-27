@@ -8,6 +8,8 @@ import datetime
 import xlrd
 import xlwt
 
+import contextlib
+from sqlalchemy import MetaData
 import pyqtgraph as pg
 
 if hasattr(sys, 'frosen'):
@@ -21,6 +23,14 @@ from data.Types import Types
 from data.drons import Drons
 from data.tech_maps import TechMaps
 from data.storage import Storage
+
+
+def load_types():
+    session = db_session.create_session()
+    if session.query(Types).all() == []:
+        session.add(Types(name='Аккумуляторные батареи'))
+        session.add(Types(name='Прочее'))
+        session.commit()
 
 
 class MainMenu(QMainWindow):
@@ -47,6 +57,7 @@ class LoadToDataBaseWindow(QMainWindow):
     def __init__(self):
         db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
+        load_types()
         uic.loadUi('ui/load_form.ui', self)
         self.pushButton.clicked.connect(self.viewFile)
         self.pushButton1.clicked.connect(self.viewFile)
@@ -72,6 +83,7 @@ class LoadToDataBaseWindow(QMainWindow):
             self.load(dron_file, complact_file, cards_file)
 
     def load(self, drons, complact, cards_file):
+
         wb = xlrd.open_workbook(drons)
         sh = wb.sheet_by_index(0)
         for row_number in range(1, sh.nrows):
@@ -129,6 +141,7 @@ class AddPartWindow(QMainWindow):
     def __init__(self):
         db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
+        load_types()
         uic.loadUi('ui/add_parts_form.ui', self)
         self.ok.clicked.connect(self.loadToDB)
         self.b_load.clicked.connect(self.loadToDB)
@@ -153,7 +166,9 @@ class AddPartWindow(QMainWindow):
         # запись в базу данных
         for i in parts_lst:
             print(i)
-            self.addPost(i[0], i[1], i[2])
+            res = self.addPost(i[0], i[1], i[2])
+            if not res:
+                return
 
         with open('log.txt', 'a+') as log:
             n = self.spinBox.value()
@@ -189,23 +204,37 @@ class AddPartWindow(QMainWindow):
     def addPost(self, name, ser_num, qual):
         post = Storage()
         session = db_session.create_session()
-        post.id_parts = session.query(Parts).filter(Parts.name.like("%" + name + "%")).first().id
+        try:
+            post.id_parts = session.query(Parts).filter(Parts.name.like("%" + name + "%")).first().id
+        except AttributeError:
+            self.error_window = Error(text='Такого АКБ нет')
+            self.error_window.show()
+            session.close()
+            return False
         try:
             post.serial_number = int(ser_num)
-        except TypeError:
-            print('некоторые параметры не записаны')
+        except Exception:
+            self.error_window = Error(text='Некоторые параметры не записаны')
+            self.error_window.show()
+            session.close()
+            return False
         try:
             post.quantity = int(qual)
-        except TypeError:
-            print('некоторые параметры не записаны')
+        except Exception:
+            self.error_window = Error(text='Некоторые параметры не записаны')
+            self.error_window.show()
+            session.close()
+            return False
         session.add(post)
         session.commit()
+        return True
 
 
 class ViewAllWindow(QMainWindow):
     def __init__(self):
         db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
+        load_types()
         uic.loadUi('ui/remainings.ui', self)
         self.b_load.clicked.connect(self.takeNote)
         self.b_print.clicked.connect(self.createXLSX)
