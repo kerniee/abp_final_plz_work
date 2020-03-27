@@ -15,4 +15,4 @@ class TechMaps(SqlAlchemyBase):
     id_parts = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("Parts.id"), nullable=True)
     part = orm.relation('Parts')
 
-    quantity = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    quantity = sqlalchemy.Column(sqlalchemy.String(255), nullable=True)

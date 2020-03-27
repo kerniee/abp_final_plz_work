@@ -45,6 +45,47 @@ class MainMenu(QMainWindow):
         self.b_createRequest.clicked.connect(self.createWindow('CreateOrder'))
         self.b_viewRequests.clicked.connect(self.createWindow('ViewRequestsWindow'))
         self.b_viewAKB.clicked.connect(self.createWindow('ViewAKBWindow'))
+        self.b_drop_tables.clicked.connect(self.drop_tables)
+
+    def drop_tables(self):
+        self.wait_window = Error(title='Упс', text="Не работает")
+        self.wait_window.show()
+        # db_session.global_init("db/Tracking_drones.sqlite")
+        # session = db_session.create_session()
+        # for tbl in reversed(meta.sorted_tables):
+        #     engine.execute(tbl.delete())
+        # db_session.global_init("db/Tracking_drones.sqlite")
+        # session = db_session.create_session()
+        # engine = session.get_bind()
+        # command = 'SET FOREIGN_KEY_CHECKS='
+        # with engine.connect() as con:
+        #     con.execute(command + '0')
+        # # session.execute('''TRUNCATE TABLE Parts''')
+        # # session.execute('''TRUNCATE TABLE TechMaps''')
+        # # session.execute('''TRUNCATE TABLE Drons''')
+        # # session.execute('''TRUNCATE TABLE Types''')
+        # # session.execute('''TRUNCATE TABLE Storage''')
+        # # session.execute('''TRUNCATE TABLE Orders''')
+        # Parts.__table__.drop(engine)
+        # TechMaps.__table__.drop(engine)
+        # Drons.__table__.drop(engine)
+        # Types.__table__.drop(engine)
+        # Storage.__table__.drop(engine)
+        # Orders.__table__.drop(engine)
+        # with engine.connect() as con:
+        #     con.execute(command + '1')
+        #
+        # # import sqlalchemy.ext.declarative as dec
+        # # SqlAlchemyBase = dec.declarative_base()
+        #
+        # # SqlAlchemyBase.metadata.create_all(engine)
+        # session.commit()
+        # session.close()
+
+        # db_session.global_init("db/Tracking_drones.sqlite")
+        #
+        # self.ok_window = Error(title='ОК', text="База данных успешно сброшена")
+        # self.ok_window.show()
 
     def createWindow(self, name):
         def _createWindow():
@@ -85,57 +126,57 @@ class LoadToDataBaseWindow(QMainWindow):
             self.load(dron_file, complact_file, cards_file)
 
     def load(self, drons, complact, cards_file):
+        self.wait_window = Error(title='Загрузка', text="Пожалуйста, подождите.\nИдет загрузка файлов на удаленный сервер")
+        self.wait_window.show()
         wb = xlrd.open_workbook(drons)
         sh = wb.sheet_by_index(0)
+        session = db_session.create_session()
         for row_number in range(1, sh.nrows):
             temp = sh.row_values(row_number)
-            self.addDron(temp[1], temp[2])
+            self.addDron(temp[1], temp[2], session)
 
         wb1 = xlrd.open_workbook(complact)
         sh1 = wb1.sheet_by_index(0)
         for row_number in range(1, sh1.nrows):
             temp = sh1.row_values(row_number)
-            self.addParts(temp[1], temp[2])
+            self.addParts(temp[1], temp[2], session)
 
         wb2 = xlrd.open_workbook(cards_file)
         sh2 = wb2.sheet_by_index(0)
         for row_number in range(1, sh2.nrows):
             temp = sh2.row_values(row_number)
-            self.addTechMap(temp[1], temp[2], temp[3])
+            self.addTechMap(temp[1], temp[2], temp[3], session)
 
-    def addDron(self, name, cost):
+        session.commit()
+        self.ok_window = Error(title='ОК', text="База данных успешно обновлена")
+        self.ok_window.show()
+
+    def addDron(self, name, cost, session):
         dron = Drons()
         dron.name = name
         dron.cost = cost
 
-        session = db_session.create_session()
         session.add(dron)
-        session.commit()
 
-    def addParts(self, name, type_):
+    def addParts(self, name, type_, session):
         # создание элемента нужного класса
         part = Parts()
         # установка параметров элемента
         part.name = name
 
-        # создание сессии к базе данных
-        session = db_session.create_session()
         part.type = session.query(Types).filter(Types.name.like("%" + type_ + "%")).first().id
 
         # запись элемента в базу
         session.add(part)
-        session.commit()
 
-    def addTechMap(self, dron_name, part_name, qual):
+    def addTechMap(self, dron_name, part_name, qual, session):
         map_ = TechMaps()
 
-        session = db_session.create_session()
         map_.id_drons = session.query(Drons).filter(Drons.name.like("%" + dron_name + "%")).first().id
         map_.id_parts = session.query(Parts).filter(Parts.name.like("%" + part_name + "%")).first().id
         map_.quantity = qual
 
         session.add(map_)
-        session.commit()
 
 
 class CreateOrder(QMainWindow):
@@ -533,10 +574,11 @@ class ViewAKBWindow(QMainWindow):
 
 
 class Error(QtWidgets.QDialog):
-    def __init__(self, main=None, text='Не все поля заполнены'):
+    def __init__(self, main=None, text='Не все поля заполнены', title='Ошибка'):
         super().__init__(main)
         uic.loadUi('ui/error.ui', self)
         self.label.setText(text)
+        self.setWindowTitle(title)
 
 
 class ViewRequestsWindow(QMainWindow):
