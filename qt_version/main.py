@@ -24,6 +24,7 @@ from data import db_session
 from data.Parts import Parts
 from data.Types import Types
 from data.drons import Drons
+from data.Orders import Orders
 from data.tech_maps import TechMaps
 from data.storage import Storage
 
@@ -446,12 +447,35 @@ class Error(QtWidgets.QDialog):
 
 class ViewRequestsWindow(QMainWindow):
     def __init__(self):
+        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
-        # uic.loadUi('ui/error.ui', self)
+        uic.loadUi('ui/orders.ui', self)
         self.show_requests()
 
     def show_requests(self):
         session = db_session.create_session()
+        orders = session.query(Orders).all()
+        data = []
+        for i in orders:
+            summ = 0
+            drones = [x.split() for x in i.dron_lst.split('\n')]
+            for dron in drones:
+                try:
+                    model_dron = session.query(Drons).filter(Drons.name.like("%" + dron[0] + "%")).first()
+                except:
+                    self.error_window = Error(text='Не найден дрон с именем ' + str(dron[0]))
+                    self.error_window.show()
+                    return
+                summ += int(dron[1]) * int(model_dron.cost)
+            data.append([i.id, i.createDate, i.closeDate, i.state, summ])
+        self.loadDataToTable(data)
+
+    def loadDataToTable(self, data):
+        self.tableWidget.setRowCount(len(data))
+        for i, elem in enumerate(data):
+            for j, val in enumerate(elem):
+                self.tableWidget.setItem(i, j, QTableWidgetItem(str(val)))
+        self.tableWidget.resizeColumnsToContents()
 
 
 class Chooser(QMainWindow):

@@ -97,7 +97,7 @@
      <string>Посмотреть остатки АКБ</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="bt_viewRequests">
+   <widget class="QPushButton" name="b_viewRequests">
     <property name="geometry">
      <rect>
       <x>420</x>
