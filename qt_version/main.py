@@ -43,7 +43,7 @@ class MainMenu(QMainWindow):
         self.b_addPart.clicked.connect(self.createWindow('AddPartWindow'))
         self.b_viewAll.clicked.connect(self.createWindow('ViewAllWindow'))
         # self.b_createRequest.clicked.connect(self.createWindow('...'))
-        # self.b_viewRequests.clicked.connect(self.createWindow('...'))
+        self.b_viewRequests.clicked.connect(self.createWindow('ViewRequestsWindow'))
         self.b_viewAKB.clicked.connect(self.createWindow('ViewAKBWindow'))
 
     def createWindow(self, name):
@@ -211,20 +211,15 @@ class AddPartWindow(QMainWindow):
     def addPost(self, name, ser_num, qual):
         post = Storage()
         session = db_session.create_session()
-        try:
-            post.id_parts = session.query(Parts).filter(Parts.name.like("%" + name + "%")).first().id
-        except AttributeError:
-            self.error_window = Error(text='Такого АКБ нет')
-            self.error_window.show()
-            session.close()
-            return False
+        post.id_parts = session.query(Parts).filter(Parts.name.like("%" + name + "%")).first().id
         try:
             post.serial_number = int(ser_num)
         except Exception:
-            self.error_window = Error(text='Некоторые параметры не записаны')
-            self.error_window.show()
-            session.close()
-            return False
+            if name.startswith('АКБ'):
+                self.error_window = Error(text='Некоторые параметры не записаны')
+                self.error_window.show()
+                session.close()
+                return False
         try:
             post.quantity = int(qual)
         except Exception:
@@ -447,6 +442,16 @@ class Error(QtWidgets.QDialog):
         super().__init__(main)
         uic.loadUi('ui/error.ui', self)
         self.label.setText(text)
+
+
+class ViewRequestsWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        # uic.loadUi('ui/error.ui', self)
+        self.show_requests()
+
+    def show_requests(self):
+        session = db_session.create_session()
 
 
 class Chooser(QMainWindow):
