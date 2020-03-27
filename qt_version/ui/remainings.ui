@@ -64,11 +64,31 @@
       <pointsize>16</pointsize>
      </font>
     </property>
+    <property name="dateTime">
+     <datetime>
+      <hour>0</hour>
+      <minute>0</minute>
+      <second>0</second>
+      <year>2020</year>
+      <month>9</month>
+      <day>27</day>
+     </datetime>
+    </property>
+    <property name="minimumDateTime">
+     <datetime>
+      <hour>0</hour>
+      <minute>0</minute>
+      <second>0</second>
+      <year>2020</year>
+      <month>3</month>
+      <day>25</day>
+     </datetime>
+    </property>
     <property name="date">
      <date>
       <year>2020</year>
-      <month>3</month>
-      <day>26</day>
+      <month>9</month>
+      <day>27</day>
      </date>
     </property>
    </widget>
@@ -197,7 +217,7 @@
      <x>0</x>
      <y>0</y>
      <width>450</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
