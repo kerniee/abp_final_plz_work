@@ -2,24 +2,21 @@
 
 import datetime
 import os
-import sys
+from sqlalchemy import MetaData
 import time
+import sys
 
 import pyqtgraph as pg
 import xlrd
 import xlwt
 
 import contextlib
-from sqlalchemy import MetaData
 import pyqtgraph as pg
-
-
-from PyQt5 import uic, Qt
 
 if hasattr(sys, 'frosen'):
     os.environ['PATH'] = sys._MEIPASS + ';' + os.environ['PATH']
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QTableWidgetSelectionRange
 from PyQt5 import QtWidgets
 from data import db_session
 from data.Parts import Parts
@@ -548,6 +545,8 @@ class ViewRequestsWindow(QMainWindow):
         super().__init__()
         uic.loadUi('ui/orders.ui', self)
         self.show_requests()
+        self.tableWidget.itemSelectionChanged.connect(self.itemSelectionChanged_)
+        self.pushButton.clicked.connect(self.changeState)
 
     def show_requests(self):
         session = db_session.create_session()
@@ -576,6 +575,64 @@ class ViewRequestsWindow(QMainWindow):
             for j, val in enumerate(elem):
                 self.tableWidget.setItem(i, j, QTableWidgetItem(str(val)))
         self.tableWidget.resizeColumnsToContents()
+
+    def itemSelectionChanged_(self):
+        y = self.tableWidget.currentRow()
+        self.tableWidget.setRangeSelected(QTableWidgetSelectionRange(1, y, 5, y), True)
+        self.pushButton.setEnabled(True)
+
+    def changeState(self):
+        win = OrderStateChacnger(self, self.tableWidget.item(self.tableWidget.currentRow(), 3).text())
+        win.show()
+
+
+class OrderStateChacnger(QMainWindow):
+    def __init__(self, main=None, now_state='Создана'):
+        super().__init__(main)
+        uic.loadUi('ui/order_state_changer.ui', self)
+        self.now_state = now_state
+        self.addStatesToComboBox()
+        self.main = main
+        self.pushButton.clicked.connect(self.buttons)
+        self.pushButton_2.clicked.connect(self.close)
+
+
+    def addStatesToComboBox(self):
+        self.lineEdit.setText(self.now_state)
+        state_lst = ['Создана', 'Запрошено разрешение у ФСБ', 'Анулирована', 'Идет сборка',
+                     'Готова к отгрузке', 'Отгружена']
+        if self.now_state == 'Создана':
+            self.combo.addItem(state_lst[1])
+        if self.now_state == 'Запрошено разрешение у ФСБ':
+            self.combo.addItem(state_lst[2])
+            self.combo.addItem(state_lst[3])
+        if self.now_state == 'Идет сборка':
+            self.combo.addItem(state_lst[4])
+        if self.now_state == 'Готова к отгрузке':
+            self.combo.addItem(state_lst[5])
+
+
+    def buttons(self):
+        new_state = self.combo.currentText()
+        if new_state == 'состояние не выбрано':
+            win = Error(self, 'Cостояние не выбрано')
+            win.show()
+            return
+        session = db_session.create_session()
+
+        temp = [self.main.tableWidget.item(self.main.tableWidget.currentRow(), 0).text()
+                ,self.main.tableWidget.item(self.main.tableWidget.currentRow(), 1).text()
+               ,self.main.tableWidget.item(self.main.tableWidget.currentRow(), 2).text(),
+               self.main.tableWidget.item(self.main.tableWidget.currentRow(), 3).text(),
+               self.main.tableWidget.item(self.main.tableWidget.currentRow(), 4).text()]
+        qer = session.query(Orders).filter(Orders.id.like(temp[0])).first()
+        qer.closeDate = datetime.datetime.now().date()
+        if new_state != 'Готова к отгрузке':
+            qer.state = new_state
+        session.commit()
+
+        self.main.show_requests()
+        self.close()
 
 
 class Chooser(QMainWindow):
