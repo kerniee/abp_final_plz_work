@@ -69,9 +69,9 @@
       <hour>0</hour>
       <minute>0</minute>
       <second>0</second>
-      <year>2020</year>
-      <month>9</month>
-      <day>27</day>
+      <year>3231</year>
+      <month>3</month>
+      <day>25</day>
      </datetime>
     </property>
     <property name="minimumDateTime">
@@ -79,16 +79,23 @@
       <hour>0</hour>
       <minute>0</minute>
       <second>0</second>
-      <year>2020</year>
-      <month>3</month>
-      <day>25</day>
+      <year>2000</year>
+      <month>1</month>
+      <day>1</day>
      </datetime>
+    </property>
+    <property name="minimumDate">
+     <date>
+      <year>2000</year>
+      <month>1</month>
+      <day>1</day>
+     </date>
     </property>
     <property name="date">
      <date>
-      <year>2020</year>
-      <month>9</month>
-      <day>27</day>
+      <year>3231</year>
+      <month>3</month>
+      <day>25</day>
      </date>
     </property>
    </widget>
@@ -217,7 +224,7 @@
      <x>0</x>
      <y>0</y>
      <width>450</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
