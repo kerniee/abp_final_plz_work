@@ -1,10 +1,11 @@
 # 9roH}$gr - пароль от архива
 
+import datetime
 import os
 import sys
 import time
-import datetime
 
+import pyqtgraph as pg
 import xlrd
 import xlwt
 
@@ -12,9 +13,11 @@ import contextlib
 from sqlalchemy import MetaData
 import pyqtgraph as pg
 
+
+from PyQt5 import uic, Qt
 if hasattr(sys, 'frosen'):
     os.environ['PATH'] = sys._MEIPASS + ';' + os.environ['PATH']
-from PyQt5 import uic, Qt
+from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5 import QtWidgets
 from data import db_session
@@ -23,7 +26,6 @@ from data.Types import Types
 from data.drons import Drons
 from data.tech_maps import TechMaps
 from data.storage import Storage
-
 
 def load_types():
     session = db_session.create_session()
@@ -83,7 +85,6 @@ class LoadToDataBaseWindow(QMainWindow):
             self.load(dron_file, complact_file, cards_file)
 
     def load(self, drons, complact, cards_file):
-
         wb = xlrd.open_workbook(drons)
         sh = wb.sheet_by_index(0)
         for row_number in range(1, sh.nrows):
@@ -141,8 +142,8 @@ class AddPartWindow(QMainWindow):
     def __init__(self):
         db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
-        load_types()
         uic.loadUi('ui/add_parts_form.ui', self)
+        load_types()
         self.ok.clicked.connect(self.loadToDB)
         self.b_load.clicked.connect(self.loadToDB)
         self.b_close.clicked.connect(self.cclose)
@@ -160,15 +161,21 @@ class AddPartWindow(QMainWindow):
             self.close()
 
     def loadToDB(self):
+        session = db_session.create_session()
         # получение данных из таблицы
         parts_lst = self.getData()
 
         # запись в базу данных
+        
         for i in parts_lst:
             print(i)
             res = self.addPost(i[0], i[1], i[2])
             if not res:
                 return
+
+        self.checkOstatock(self.dateEdit.date().toPyDate(),
+                           [[i.id, i.part.name, i.quantity] for i in session.query(Storage).all()])
+        session.close()
 
         with open('log.txt', 'a+') as log:
             n = self.spinBox.value()
@@ -229,6 +236,41 @@ class AddPartWindow(QMainWindow):
         session.commit()
         return True
 
+    def checkOstatock(self, date, lst):
+        files = os.listdir('отчёты')
+        print(date)
+        filename = 'Остаток_на_' + str(date) + '.xls'
+        if filename not in files:
+            file = open('отчёты/' + filename, 'w')
+            file.close()
+
+            file = open('отчёты/otchet_lod.txt', 'r')
+            dates = []
+            for i in (file.read() + '\n' + str(date)).split('\n'):
+                dates.append(datetime.date(int(i.split('-')[0]), int(i.split('-')[1]), int(i.split('-')[2])))
+            dates = '\n'.join(list(map(str, sorted(dates))))
+            file.close()
+
+            file = open('отчёты/otchet_lod.txt', 'w')
+            file.write(dates)
+            file.close()
+            print(1)
+
+        book = xlwt.Workbook(encoding="utf-8")
+        sheet1 = book.add_sheet("Python Sheet 1")
+        sheet1.write(0, 0, '№')
+        sheet1.write(0, 1, 'Комплектующее')
+        sheet1.write(0, 2, 'Остаток')
+
+        datas = lst
+        print(datas)
+
+        for row, data in enumerate(datas, start=1):
+            for col, field in enumerate(data):
+                sheet1.write(row, col, field)
+
+        book.save('отчёты/' + filename)
+
 
 class ViewAllWindow(QMainWindow):
     def __init__(self):
@@ -237,7 +279,7 @@ class ViewAllWindow(QMainWindow):
         load_types()
         uic.loadUi('ui/remainings.ui', self)
         self.b_load.clicked.connect(self.takeNote)
-        self.b_print.clicked.connect(self.createXLSX)
+        self.b_print.clicked.connect(self.chooseSaveOrPrint)
         self.b_close.clicked.connect(self.close)
         self.editDateTime()
 
@@ -255,11 +297,11 @@ class ViewAllWindow(QMainWindow):
     def takeNote(self):
         day = self.dateEdit.date().toPyDate()
         now_day = datetime.datetime.now().date()
-        #Если дата в будущем вызываем ошибку
+        # Если дата в будущем вызываем ошибку
         if day > now_day:
             warn = Error(self, 'На указаную дату не может быть отчёта')
             warn.show()
-        #если дата назначено сегодня - вызываем информацию напрямую из базы
+        # если дата назначено сегодня - вызываем информацию напрямую из базы
         elif day == now_day:
             self.takeDataFromBase()
         else:
@@ -267,7 +309,7 @@ class ViewAllWindow(QMainWindow):
             dates_where_we_have_otchet = open('отчёты/otchet_lod.txt', 'r')
             temp = dates_where_we_have_otchet.read().split('\n')
 
-            #если есть берём этот отч1т и выводим в таблицу
+            # если есть берём этот отч1т и выводим в таблицу
             if str(day) in temp:
                 filename = 'отчёты/Остаток_на_' + str(day) + '.xls'
                 self.takeDataFromFile(filename)
@@ -277,10 +319,10 @@ class ViewAllWindow(QMainWindow):
                 for i in temp:
                     dates.append(datetime.date(int(i.split('-')[0]), int(i.split('-')[1]), int(i.split('-')[2])))
                 dates = sorted(dates)
-                #иначе берёмсамое близкое число, предшествующее данному и показываем отчёт за него
+                # иначе берёмсамое близкое число, предшествующее данному и показываем отчёт за него
                 indx = dates.index(day) - 1
-                filename = 'отчёты/Остаток_на_' + str(dates[indx])  + '.xls'
-                #Если этот индекс валидный - значит есть отчёт, который предшествует данно дате - выводим его
+                filename = 'отчёты/Остаток_на_' + str(dates[indx]) + '.xls'
+                # Если этот индекс валидный - значит есть отчёт, который предшествует данно дате - выводим его
                 if 0 <= indx:
                     self.takeDataFromFile(filename)
                 else:
@@ -316,6 +358,11 @@ class ViewAllWindow(QMainWindow):
             data.append(tmp)
         return data
 
+    def chooseSaveOrPrint(self):
+        win = Chooser(self)
+        print(1)
+        win.show()
+
     def createXLSX(self):
         files = os.listdir('отчёты')
         filename = 'Остаток_на_' + str(self.dateEdit.date().toPyDate()) + '.xls'
@@ -347,9 +394,13 @@ class ViewAllWindow(QMainWindow):
                 sheet1.write(row, col, field)
 
         book.save('отчёты/' + filename)
-        win = Error(self, 'Отчёт от остатке успешно подготовлен. Вы можете найти его по пути:\n' + os.path.abspath('отчёты/' + filename))
+        win = Error(self, 'Отчёт от остатке успешно подготовлен. Вы можете найти его по пути:\n' + os.path.abspath(
+            'отчёты/' + filename))
         win.setWindowTitle('Успешно подготовлен xls')
         win.show()
+
+    def printingDoc(self):
+        pass
 
 
 class ViewAKBWindow(QMainWindow):
@@ -396,6 +447,22 @@ class Error(QtWidgets.QDialog):
         super().__init__(main)
         uic.loadUi('ui/error.ui', self)
         self.label.setText(text)
+
+
+class Chooser(QMainWindow):
+    def __init__(self, main=None):
+        super().__init__(main)
+        uic.loadUi('ui/chooser.ui', self)
+        self.main = main
+        self.pushButton_2.clicked.connect(self.buttons)
+        self.pushButton.clicked.connect(self.buttons)
+
+    def buttons(self):
+        if self.sender() == self.pushButton_2:
+            self.main.createXLSX()
+        else:
+            self.main.printingDoc()
+        self.close()
 
 
 if __name__ == '__main__':
