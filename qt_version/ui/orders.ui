@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>928</width>
+    <height>620</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTableWidget" name="tableWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>931</width>
+      <height>571</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="selectionMode">
+     <enum>QAbstractItemView::SingleSelection</enum>
+    </property>
+    <property name="sortingEnabled">
+     <bool>true</bool>
+    </property>
+    <property name="rowCount">
+     <number>0</number>
+    </property>
+    <property name="columnCount">
+     <number>5</number>
+    </property>
+    <attribute name="horizontalHeaderMinimumSectionSize">
+     <number>60</number>
+    </attribute>
+    <attribute name="horizontalHeaderDefaultSectionSize">
+     <number>180</number>
+    </attribute>
+    <attribute name="verticalHeaderMinimumSectionSize">
+     <number>60</number>
+    </attribute>
+    <attribute name="verticalHeaderDefaultSectionSize">
+     <number>60</number>
+    </attribute>
+    <column>
+     <property name="text">
+      <string>№ п.п.</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Дата создания</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Дата изменения состояния</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Состояние</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Общая сумма заявки</string>
+     </property>
+    </column>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>928</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

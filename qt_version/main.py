@@ -458,7 +458,7 @@ class ViewRequestsWindow(QMainWindow):
         data = []
         for i in orders:
             summ = 0
-            drones = [x.split() for x in i.dron_lst.split('\n')]
+            drones = [x.split(':') for x in i.dron_lst.split('\n')]
             for dron in drones:
                 try:
                     model_dron = session.query(Drons).filter(Drons.name.like("%" + dron[0] + "%")).first()
@@ -466,7 +466,10 @@ class ViewRequestsWindow(QMainWindow):
                     self.error_window = Error(text='Не найден дрон с именем ' + str(dron[0]))
                     self.error_window.show()
                     return
-                summ += int(dron[1]) * int(model_dron.cost)
+                summ += int(dron[1]) * float(model_dron.cost.replace(',', '.').
+                                             replace('o', '0').
+                                             replace('O', '0').
+                                             replace('о', '0'))
             data.append([i.id, i.createDate, i.closeDate, i.state, summ])
         self.loadDataToTable(data)
 
