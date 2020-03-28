@@ -53,7 +53,7 @@
    <widget class="QDateEdit" name="dateEdit">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>220</x>
       <y>90</y>
       <width>138</width>
       <height>33</height>
@@ -90,6 +90,9 @@
       <month>1</month>
       <day>1</day>
      </date>
+    </property>
+    <property name="calendarPopup">
+     <bool>true</bool>
     </property>
     <property name="date">
      <date>
@@ -217,19 +220,6 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="pushButton">
-    <property name="geometry">
-     <rect>
-      <x>350</x>
-      <y>96</y>
-      <width>91</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>выбрать дату</string>
-    </property>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -237,7 +227,7 @@
      <x>0</x>
      <y>0</y>
      <width>450</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

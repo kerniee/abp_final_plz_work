@@ -48,7 +48,7 @@ class MainMenu(QMainWindow):
         self.b_drop_tables.clicked.connect(self.drop_tables)
 
     def drop_tables(self):
-        self.wait_window = Error(title='Упс', text="Не работает")
+        self.wait_window = PopupWindow(title='Упс', text="Не работает")
         self.wait_window.show()
         # db_session.global_init("db/Tracking_drones.sqlite")
         # session = db_session.create_session()
@@ -126,7 +126,7 @@ class LoadToDataBaseWindow(QMainWindow):
             self.load(dron_file, complact_file, cards_file)
 
     def load(self, drons, complact, cards_file):
-        self.wait_window = Error(title='Загрузка', text="Пожалуйста, подождите.\nИдет загрузка файлов на удаленный сервер")
+        self.wait_window = PopupWindow(title='Загрузка', text="Пожалуйста, подождите.\nИдет загрузка файлов на удаленный сервер")
         self.wait_window.show()
         wb = xlrd.open_workbook(drons)
         sh = wb.sheet_by_index(0)
@@ -148,7 +148,7 @@ class LoadToDataBaseWindow(QMainWindow):
             self.addTechMap(temp[1], temp[2], temp[3], session)
 
         session.commit()
-        self.ok_window = Error(title='ОК', text="База данных успешно обновлена")
+        self.ok_window = PopupWindow(title='ОК', text="База данных успешно обновлена")
         self.ok_window.show()
 
     def addDron(self, name, cost, session):
@@ -203,7 +203,7 @@ class CreateOrder(QMainWindow):
         dron_lst = self.getData()
         dron_lst = '\n'.join(list(map(lambda u: ':'.join(u), dron_lst)))
         if dron_lst == '':
-            win = Error(self, 'Нет указаных дронов')
+            win = PopupWindow(self, 'Нет указаных дронов')
             win.show()
             return
         order.dron_lst = dron_lst
@@ -223,7 +223,7 @@ class CreateOrder(QMainWindow):
         session.commit()
         session.close()
 
-        win = Error(self, 'Заявка успешно создана в базе')
+        win = PopupWindow(self, 'Заявка успешно создана в базе')
         win.setWindowTitle('Успешно')
         win.show()
         self.close()
@@ -267,7 +267,7 @@ class AdderDronToOrder(QMainWindow):
         numbers = self.spinBox.value()
         name = self.dron_type.currentText()
         if name == 'Дрон не выбран':
-            win = Error(self, 'Дрон не выбран')
+            win = PopupWindow(self, 'Дрон не выбран')
             win.show()
             return
         self.main.slt_of_drons.append([name, numbers])
@@ -292,7 +292,7 @@ class AddPartWindow(QMainWindow):
         for line in parts_lst:
             if any([l == '' for l in line]):
                 flag = True
-                self.error_window = Error()
+                self.error_window = PopupWindow()
                 self.error_window.show()
         if not flag:
             self.close()
@@ -353,14 +353,14 @@ class AddPartWindow(QMainWindow):
             post.serial_number = int(ser_num)
         except Exception:
             if name.startswith('АКБ'):
-                self.error_window = Error(text='Некоторые параметры не записаны')
+                self.error_window = PopupWindow(text='Некоторые параметры не записаны')
                 self.error_window.show()
                 session.close()
                 return False
         try:
             post.quantity = int(qual)
         except Exception:
-            self.error_window = Error(text='Некоторые параметры не записаны')
+            self.error_window = PopupWindow(text='Некоторые параметры не записаны')
             self.error_window.show()
             session.close()
             return False
@@ -405,15 +405,16 @@ class AddPartWindow(QMainWindow):
 
 
 class ViewAllWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, inheretence=False):
         db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
-        load_types()
-        uic.loadUi('ui/remainings.ui', self)
-        self.b_load.clicked.connect(self.takeNote)
-        self.b_print.clicked.connect(self.chooseSaveOrPrint)
-        self.b_close.clicked.connect(self.close)
-        self.editDateTime()
+        if not inheretence:
+            load_types()
+            uic.loadUi('ui/remainings.ui', self)
+            self.b_load.clicked.connect(self.takeNote)
+            self.b_print.clicked.connect(self.chooseSaveOrPrint)
+            self.b_close.clicked.connect(self.close)
+            self.editDateTime()
 
     def editDateTime(self):
         today = datetime.datetime.now().date()
@@ -426,13 +427,17 @@ class ViewAllWindow(QMainWindow):
                 self.tableWidget.setItem(i, j, QTableWidgetItem(str(val)))
         self.tableWidget.resizeColumnsToContents()
 
-    def takeNote(self):
-        day = self.dateEdit.date().toPyDate()
+    def takeNote(self, day=False, inheretence=False):
+        if day is False:
+            day = self.dateEdit.date().toPyDate()
         now_day = datetime.datetime.now().date()
         # Если дата в будущем вызываем ошибку
         if day > now_day:
-            warn = Error(self, 'На указаную дату не может быть отчёта')
-            warn.show()
+            if not inheretence:
+                warn = PopupWindow(self, 'На указаную дату нет отчёта. На предшествующие даты также нет отчётов.')
+                warn.show()
+            else:
+                self.loadDataToTable([])
         # если дата назначено сегодня - вызываем информацию напрямую из базы
         elif day == now_day:
             self.takeDataFromBase()
@@ -459,8 +464,12 @@ class ViewAllWindow(QMainWindow):
                     self.takeDataFromFile(filename)
                 else:
                     # Иначе предупреждаем об ошибке
-                    warn = Error(self, 'На указаную дату нет отчёта. На предшествующие даты также нет отчётов.')
-                    warn.show()
+                    if not inheretence:
+                        warn = PopupWindow(self, 'На указаную дату нет отчёта. На предшествующие даты также нет отчётов.')
+                        warn.show()
+                    else:
+                        self.loadDataToTable([])
+
 
     def takeDataFromFile(self, filename):
         wb2 = xlrd.open_workbook(filename)
@@ -525,7 +534,7 @@ class ViewAllWindow(QMainWindow):
                 sheet1.write(row, col, field)
 
         book.save('отчёты/' + filename)
-        win = Error(self, 'Отчёт от остатке успешно подготовлен. Вы можете найти его по пути:\n' + os.path.abspath(
+        win = PopupWindow(self, 'Отчёт от остатке успешно подготовлен. Вы можете найти его по пути:\n' + os.path.abspath(
             'отчёты/' + filename))
         win.setWindowTitle('Успешно подготовлен xls')
         win.show()
@@ -534,9 +543,9 @@ class ViewAllWindow(QMainWindow):
         pass
 
 
-class ViewAKBWindow(QMainWindow):
+class ViewAKBWindow(ViewAllWindow):
     def __init__(self):
-        super().__init__()
+        super().__init__(inheretence=True)
         uic.loadUi('ui/spare_parts_remaining_form.ui', self)
 
         self.dateEdit.dateChanged.connect(self.generate_plot)
@@ -544,9 +553,17 @@ class ViewAKBWindow(QMainWindow):
 
         self.view = view = pg.PlotWidget()
         self.curve = view.plot(name="Line")
+        self.data = []
         self.generate_plot()
 
     def generate_dates(self):
+        start_date = self.dateEdit.date().toPyDate()
+        l = []
+        for i in range(self.NUM_OF_DATES):
+            l.append(start_date + datetime.timedelta(days=i))
+        return l
+
+    def generate_axes_dates(self):
         start_date = self.dateEdit.date().toPyDate()
         l = []
         for i in range(self.NUM_OF_DATES):
@@ -562,18 +579,27 @@ class ViewAKBWindow(QMainWindow):
         self.view = view = pg.PlotWidget()
         self.curve = view.plot(name="Line")
 
-        # TODO: load info from db
-        import random
-        array = [random.randint(1, 100) for x in range(self.NUM_OF_DATES)]
+        # # TODO: load info from db
+        # import random
+        # array = [random.randint(1, 100) for x in range(self.NUM_OF_DATES)]
+        self.data = []
+        dates = [list(zip(range(self.NUM_OF_DATES), self.generate_axes_dates()))]
+        [self.takeNote(date, inheretence=True) for date in self.generate_dates()]
 
-        dates = [list(zip(range(self.NUM_OF_DATES), self.generate_dates()))]
         xax = self.view.getAxis('bottom')
         xax.setTicks(dates)
-        self.curve.setData(array)
+        self.curve.setData(self.data)
         self.gridLayout.addWidget(self.view)
 
+    def loadDataToTable(self, data: list):
+        # Actually loads data to plot
+        if len(data) == 0:
+            self.data.append(0)
+        else:
+            self.data.append(sum([int(float(x[2])) for x in data]))
 
-class Error(QtWidgets.QDialog):
+
+class PopupWindow(QtWidgets.QDialog):
     def __init__(self, main=None, text='Не все поля заполнены', title='Ошибка'):
         super().__init__(main)
         uic.loadUi('ui/error.ui', self)
@@ -601,7 +627,7 @@ class ViewRequestsWindow(QMainWindow):
                 try:
                     model_dron = session.query(Drons).filter(Drons.name.like("%" + dron[0] + "%")).first()
                 except:
-                    self.error_window = Error(text='Не найден дрон с именем ' + str(dron[0]))
+                    self.error_window = PopupWindow(text='Не найден дрон с именем ' + str(dron[0]))
                     self.error_window.show()
                     return
                 summ += int(dron[1]) * float(model_dron.cost.replace(',', '.').
@@ -657,7 +683,7 @@ class OrderStateChacnger(QMainWindow):
     def buttons(self):
         new_state = self.combo.currentText()
         if new_state == 'состояние не выбрано':
-            win = Error(self, 'Cостояние не выбрано')
+            win = PopupWindow(self, 'Cостояние не выбрано')
             win.show()
             return
         session = db_session.create_session()

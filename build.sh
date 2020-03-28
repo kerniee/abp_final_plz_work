@@ -11,3 +11,4 @@ cp -r qt_version/отчёты compiled/отчёты
 mv qt_version/dist/main compiled
 cp qt_version/Сопроводительная_записка.txt compiled
 cp qt_version/main.py compiled
+zip --password 9roH\}\$gr sessionX.zip -r compiled

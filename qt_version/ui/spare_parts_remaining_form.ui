@@ -66,6 +66,9 @@
          <pointsize>16</pointsize>
         </font>
        </property>
+       <property name="calendarPopup">
+        <bool>true</bool>
+       </property>
        <property name="date">
         <date>
          <year>2020</year>
@@ -93,6 +96,9 @@
         <font>
          <pointsize>16</pointsize>
         </font>
+       </property>
+       <property name="calendarPopup">
+        <bool>true</bool>
        </property>
        <property name="date">
         <date>
