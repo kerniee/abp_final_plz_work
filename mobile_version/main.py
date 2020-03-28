@@ -157,19 +157,16 @@ class DBWoker():
     def __init__(self):
         db_session.global_init("db/Tracking_drones.sqlite")
 
-    def laodDataFromDB(self):
+    def loadDataToDB(self):
         session = db_session.create_session()
         for i in session.query(Storage).all():
             print(i.id)
-
-    def loadDataToDB(self):
-        pass
 
 
 # ----------------TEST------------------
 if __name__ == "__main__":
     db_woker = DBWoker()
-    db_woker.laodDataFromDB()
+    db_woker.loadDataToDB()
     from kivy.base import runTouchApp
 
     help(TextInput)
