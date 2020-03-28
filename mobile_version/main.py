@@ -175,7 +175,7 @@ class DBWoker():
 
     def laodDataFromDB(self):
         session = db_session.create_session()
-        session.inf = []
+        self.inf = []
         for i in session.query(Storage).all():
             temp = [str(i.part.name), str(i.quantity), '0']
             self.inf.append(temp)
