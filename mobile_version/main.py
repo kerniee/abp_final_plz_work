@@ -7,8 +7,23 @@ Create a scrollable list with selectable rows. Data must be a List of Lists
 @author: Edgardo Javier Stacul
 @email: staculjavier@gmail.com
 """
-
+from kivy.app import App
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.gridlayout import GridLayout
+from kivy.core.window import Window
+from kivy.config import ConfigParser
+from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
+from kivy.metrics import dp
+from datetime import datetime
+import os
+import ast
+import time
 from kivy.lang import Builder
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import NumericProperty, ListProperty
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -16,6 +31,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 
+from data.Parts import Parts
 from data import db_session
 from data.storage import Storage
 
@@ -78,8 +94,10 @@ class List(RelativeLayout):
     def load_to_db(self, *args):
         # TODO сделать загрузку в базу данных
         # получение текста из текстовых полей
+        quans = []
         for i in self.Rows:
-            print(i[-1].text)
+            quans.append(i[-1].text)
+        db_woker.loadDataToDB(quans)
 
     def add_buttons(self):
 
@@ -144,33 +162,42 @@ class List(RelativeLayout):
             cell.color = [1, 1, 1, 1]
             cell.bcolor = [0, 0, 0.8, 1]
 
-
 class ListHeader(Button):
     bcolor = ListProperty([1, 1, 1, 1])
-
 
 class ListCell(Label):
     bcolor = ListProperty([1, 1, 1, 1])
 
-
 class DBWoker():
     def __init__(self):
         db_session.global_init("db/Tracking_drones.sqlite")
+        self.inf = []
 
-    def loadDataToDB(self):
+    def laodDataFromDB(self):
         session = db_session.create_session()
+        session.inf = []
         for i in session.query(Storage).all():
-            print(i.id)
+            temp = [str(i.part.name), str(i.quantity), '0']
+            self.inf.append(temp)
+
+    def loadDataToDB(self, quan):
+        session = db_session.create_session()
+        temp = session.query(Storage).all()
+        for i in range(len(temp)):
+            temp[i].quantity = quan[i]
+        session.commit()
+        self.laodDataFromDB()
+        c.data = [['Номенклатура', 'Остаток по данным ДБ', 'Фактическое количество']] + self.inf
 
 
 # ----------------TEST------------------
 if __name__ == "__main__":
     db_woker = DBWoker()
-    db_woker.loadDataToDB()
+    db_woker.laodDataFromDB()
     from kivy.base import runTouchApp
 
     help(TextInput)
     c = List()
-    c.data = [['Номенклатура', 'Остаток по данным ДБ', 'Фактическое количество'], ['1', '2', '3'],
-              ['1', '2', '3'], ['1', '2', '3'], ['1', '2', '3'], ['1', '2', '3'], ['1', '2', '3']]
+    print(db_woker.inf)
+    c.data = [['Номенклатура', 'Остаток по данным ДБ', 'Фактическое количество']] + db_woker.inf
     runTouchApp(c)
