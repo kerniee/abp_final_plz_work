@@ -1,0 +1,60 @@
+Проверка видео:
+-- Посмотрите видео с демонстрацией работы приложения.
+---- Мобильное приложение отображается одинаково как на Android так и на ПК(например при разработке), т.к. мы используем кроссплатформеный фреймворк Kivy.
+---- Данные между десктопным и мобильным приложениями передаются из одного источника - удалённой базы данных SQL.
+Подключение к ней может занять некоторое время. Только после подключения к базе данных открывается приложение.
+
+Проверка:
+-- Нажмите кнопку 'Мониторинг производства'
+-- При отсутствии подключения к интернету пользователю выводится сообщение 'Ошибка соединения с сервером'
+-- При наличии подключения к интернету приложение подключается к дб, используюя фреймворк SQLAlchemy
+-- Запрос для подключения к дб: 'mysql://sql12329678:DgDV3ggzcM@sql12.freemysqlhosting.net/sql12329678?host=sql12.freemysqlhosting.net?port=3306?check_same_thread=False?charset=utf8_general_ci'
+-- После этого приложение получает данные обо всех заявках и отображает их пользователю
+
+
+
+Код подключения к дб
+```
+import sqlalchemy as sa
+import sqlalchemy.orm as orm
+from sqlalchemy.orm import Session
+import sqlalchemy.ext.declarative as dec
+
+SqlAlchemyBase = dec.declarative_base()
+
+__factory = None
+
+def global_init(db_file):
+    global __factory
+
+    if __factory:
+        return
+
+    if not db_file or not db_file.strip():
+        raise Exception("Необходимо указать файл базы данных.")
+    server = 'sql12.freemysqlhosting.net'
+    username = 'sql12329678'
+    password = 'DgDV3ggzcM'
+    conn_str = f"mysql://{username}:{password}@{server}/{username}?host={server}" \
+               f"?port=3306" \
+               f"?check_same_thread=False" \
+               f"?charset=utf8_general_ci"
+    # conn_str = f'sqlite:///{db_file.strip()}?check_same_thread=False'
+    print(f"Подключение к базе данных по адресу {conn_str}")
+
+    engine = sa.create_engine(conn_str, echo=False)
+    __factory = orm.sessionmaker(bind=engine)
+
+    from . import __all_models
+
+    SqlAlchemyBase.metadata.create_all(engine)
+
+def create_session() -> Session:
+    global __factory
+    return __factory()
+```
+
+
+Код отправки запроса на получения заявок
+```
+```

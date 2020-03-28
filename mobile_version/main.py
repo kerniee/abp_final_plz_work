@@ -30,6 +30,7 @@ from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
+import dis
 
 from data.Parts import Parts
 from data import db_session
