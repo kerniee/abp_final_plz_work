@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 cd qt_version
-pyinstaller -F --add-data "db:db" --add-data "ui:ui" --add-data "data:data" main.py
+# pyinstaller -F main.py
 cd ..
 rm -r compiled
 mkdir compiled
