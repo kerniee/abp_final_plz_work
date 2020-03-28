@@ -37,6 +37,7 @@ def load_types():
 
 class MainMenu(QMainWindow):
     def __init__(self):
+        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         uic.loadUi('ui/menu.ui', self)
         self.b_loadData.clicked.connect(self.createWindow('LoadToDataBaseWindow'))
@@ -98,7 +99,6 @@ class MainMenu(QMainWindow):
 
 class LoadToDataBaseWindow(QMainWindow):
     def __init__(self):
-        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         load_types()
         uic.loadUi('ui/load_form.ui', self)
@@ -181,7 +181,6 @@ class LoadToDataBaseWindow(QMainWindow):
 
 class CreateOrder(QMainWindow):
     def __init__(self):
-        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         load_types()
         uic.loadUi('ui/dron_order_form.ui', self)
@@ -277,7 +276,6 @@ class AdderDronToOrder(QMainWindow):
 
 class AddPartWindow(QMainWindow):
     def __init__(self):
-        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         uic.loadUi('ui/add_parts_form.ui', self)
         load_types()
@@ -406,7 +404,6 @@ class AddPartWindow(QMainWindow):
 
 class ViewAllWindow(QMainWindow):
     def __init__(self, inheretence=False):
-        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         if not inheretence:
             load_types()
@@ -609,7 +606,6 @@ class PopupWindow(QtWidgets.QDialog):
 
 class ViewRequestsWindow(QMainWindow):
     def __init__(self):
-        db_session.global_init("db/Tracking_drones.sqlite")
         super().__init__()
         uic.loadUi('ui/orders.ui', self)
         self.show_requests()
