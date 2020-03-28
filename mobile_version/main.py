@@ -118,15 +118,8 @@ class List(RelativeLayout):
             b2 = Button(text='Закрыть', size_hint=(0.3, 0.1),
                         width='20dp', pos_hint={'center_x': .838, 'center_y': .45},
                         on_press=self.close)
-        else:
-            b1 = Button(text='Записать', size_hint=(0.1, 0.1),
-                        width='20dp', pos_hint={'center_x': .95, 'center_y': .6},
-                        on_press=self.load_to_db)
-            b2 = Button(text='Закрыть', size_hint=(0.1, 0.1),
-                        width='20dp', pos_hint={'center_x': .95, 'center_y': .45},
-                        on_press=self.close)
-        self.add_widget(b1)
-        self.add_widget(b2)
+            self.add_widget(b1)
+            self.add_widget(b2)
 
     def list_scrollable(self):
         self.t = self.ids['gl']  # get table widget from kv
